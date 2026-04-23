@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkodaTrack - Mileage Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&family=Syne:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bg-color: #050507;
+        --surface: rgba(18, 22, 29, 0.65);
+        --surface-border: rgba(255, 255, 255, 0.08);
+        --text-primary: #ffffff;
+        --text-secondary: #8b949e;
+        --accent-cyan: #00e5ff;
+        --accent-purple: #9d4edd;
+        --status-good: #2ee59d;
+        --status-bad: #ff4757;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        overflow-x: hidden;
+        max-width: 100vw;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-primary);
+        font-family: "Sora", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        position: relative;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background:
+          radial-gradient(
+            circle at 50% 10%,
+            rgba(0, 229, 255, 0.08) 0%,
+            transparent 35%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(157, 78, 221, 0.08) 0%,
+            transparent 35%
+          );
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      .dashboard {
+        width: 100%;
+        max-width: 1300px;
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 2rem;
+        animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      .glass-panel {
+        background: var(--surface);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--surface-border);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .glass-panel::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+      }
+
+      .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .brand {
+        font-family: "Syne", sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        letter-spacing: 0.1em;
+        background: linear-gradient(90deg, #fff, var(--text-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .sync-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--accent-cyan);
+        border-radius: 50%;
+        box-shadow: 0 0 12px var(--accent-cyan);
+        animation: pulse 2.5s infinite;
+      }
+
+      .hero-data {
+        margin: 1rem 0 2rem 0;
+      }
+
+      .label {
+        font-family: "Syne", sans-serif;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.15em;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+      }
+
+      .hero-value {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(3rem, 8vw, 5.5rem);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        background: linear-gradient(180deg, #ffffff 0%, #a0abc0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+      }
+
+      .unit {
+        font-size: clamp(1.2rem, 3vw, 1.8rem);
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-left: 0.5rem;
+        -webkit-text-fill-color: var(--text-secondary);
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+      }
+
+      .metric {
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 16px;
+        border: 1px solid var(--surface-border);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .metric:hover {
+        transform: translateY(-4px);
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .metric-value {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-top: 0.75rem;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+      }
+
+      .chart-wrapper {
+        margin-top: 1.5rem;
+        width: 100%;
+        height: 280px;
+        position: relative;
+      }
+
+      .side-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        justify-content: space-between;
+      }
+
+      .progress-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .track-container {
+        width: 100%;
+      }
+
+      .track-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+      }
+
+      .track-bg {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .track-fill {
+        height: 100%;
+        border-radius: 4px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform-origin: left;
+        animation: scaleX 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: 0.5s;
+        transform: scaleX(0);
+      }
+
+      .fill-mileage {
+        background: linear-gradient(90deg, var(--accent-cyan), #0088ff);
+        box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+      }
+
+      .fill-time {
+        background: linear-gradient(90deg, var(--accent-purple), #ff00ff);
+        box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+      }
+
+      .health-card {
+        margin-top: auto;
+        padding: 2.5rem 2rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 24px;
+        text-align: center;
+        border: 1px solid var(--surface-border);
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .health-status {
+        font-family: "Syne", sans-serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        margin: 1rem 0 0.5rem 0;
+      }
+
+      .status-good {
+        color: var(--status-good);
+      }
+      .status-bad {
+        color: var(--status-bad);
+      }
+
+      .health-deviation {
+        font-size: 1.25rem;
+        font-weight: 300;
+        color: var(--text-secondary);
+      }
+
+      .recovery-action {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--surface-border);
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 8px rgba(0, 229, 255, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);
+        }
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes scaleX {
+        to {
+          transform: scaleX(1);
+        }
+      }
+
+      @media (max-width: 1024px) {
+        .dashboard {
+          grid-template-columns: 1fr;
+        }
+        .side-panel {
+          gap: 1.5rem;
+        }
+        .health-card {
+          margin-top: 0;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .metrics-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 600px) {
+        .metrics-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+        }
+        .metric {
+          padding: 1.25rem;
+        }
+        .metric-value {
+          font-size: 1.5rem;
+        }
+        .label {
+          font-size: 0.75rem;
+        }
+        body {
+          padding: 1rem;
+        }
+        .glass-panel {
+          padding: 1.5rem;
+          border-radius: 20px;
+        }
+        .health-card {
+          padding: 1.5rem;
+          border-radius: 20px;
+        }
+        .dashboard {
+          gap: 1rem;
+        }
+        .progress-group {
+          gap: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <div class="glass-panel main-content">
+        <header>
+          <div class="brand">SKODATRACK</div>
+          <div class="sync-status">
+            <div class="dot"></div>
+            SYNCED TODAY
+          </div>
+        </header>
+
+        <div class="hero-data">
+          <div class="label">Total Remaining</div>
+          <div class="hero-value">
+            {{ "{:,}".format(remaining_km) }}<span class="unit">KM</span>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric">
+            <div class="label">Allowance / Month</div>
+            <div class="metric-value">{{ "{:,}".format(km_per_month) }}</div>
+          </div>
+          <div class="metric">
+            <div class="label">Allowance / Day</div>
+            <div class="metric-value">{{ daily_allowance }}</div>
+          </div>
+          <div class="metric">
+            <div class="label">Months Left</div>
+            <div class="metric-value">{{ months_remaining }}</div>
+          </div>
+          <div class="metric">
+            <div class="label">Actual Burn / Day</div>
+            <div class="metric-value">{{ actual_daily_burn }}</div>
+          </div>
+          <div class="metric">
+            <div class="label">Projected Total</div>
+            <div class="metric-value">{{ "{:,}".format(projected_total) }}</div>
+          </div>
+          <div class="metric">
+            <div class="label">Current Mileage</div>
+            <div class="metric-value">{{ "{:,}".format(current_mileage) }}</div>
+          </div>
+        </div>
+
+        <div class="chart-wrapper">
+          <canvas id="mileageChart"></canvas>
+        </div>
+      </div>
+
+      <div class="side-panel">
+        <div class="glass-panel">
+          <div class="label" style="margin-bottom: 1.5rem; color: #fff">
+            Lease Progress
+          </div>
+
+          <div class="progress-group">
+            <div class="track-container">
+              <div class="track-header">
+                <span class="label">Mileage Used</span>
+                <span class="label" style="color: var(--text-primary)"
+                  >{{ progress_percent }}%</span
+                >
+              </div>
+              <div class="track-bg">
+                <div
+                  class="track-fill fill-mileage"
+                  style="width: {{ progress_percent }}%;"
+                ></div>
+              </div>
+            </div>
+
+            <div class="track-container">
+              <div class="track-header">
+                <span class="label">Time Elapsed</span>
+                <span class="label" style="color: var(--text-primary)"
+                  >{{ time_percent }}%</span
+                >
+              </div>
+              <div class="track-bg">
+                <div
+                  class="track-fill fill-time"
+                  style="width: {{ time_percent }}%;"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="health-card">
+          <div class="label">Burn Rate Analysis</div>
+          <div
+            class="health-status {% if health_status == 'UNDER BUDGET' %}status-good{% else %}status-bad{% endif %}"
+          >
+            {{ health_status }}
+          </div>
+          <div class="health-deviation">
+            Deviation: {{ "{:,}".format(health_diff) }} KM
+          </div>
+
+          {% if health_status == 'OVER BUDGET' and home_office_days > 0 %}
+          <div class="recovery-action">
+            <div class="label" style="color: var(--accent-cyan)">
+              Recovery Plan
+            </div>
+            <div
+              style="
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-top: 0.5rem;
+                color: var(--text-primary);
+              "
+            >
+              {{ home_office_days }} Home Office Days
+            </div>
+            <div
+              style="
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin-top: 0.25rem;
+              "
+            >
+              Required to get back on track
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const ctx = document.getElementById('mileageChart').getContext('2d');
+
+      let gradient = ctx.createLinearGradient(0, 0, 0, 250);
+      gradient.addColorStop(0, 'rgba(0, 229, 255, 0.4)');
+      gradient.addColorStop(1, 'rgba(0, 229, 255, 0.0)');
+
+      const data = {
+          labels: {{ history_dates_json | safe }},
+      datasets: [{
+          label: 'Mileage Log',
+          data: {{ history_mileages_json | safe }},
+      borderColor: '#00E5FF',
+          backgroundColor: gradient,
+          borderWidth: 3,
+          pointBackgroundColor: '#07090C',
+          pointBorderColor: '#00E5FF',
+          pointBorderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          fill: true,
+          tension: 0.4
+      }]
+      };
+
+      const config = {
+          type: 'line',
+          data: data,
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                      backgroundColor: 'rgba(18, 22, 29, 0.95)',
+                      titleFont: { family: 'Sora', size: 12 },
+                      bodyFont: { family: 'Sora', size: 14, weight: '600' },
+                      padding: 12,
+                      borderColor: 'rgba(255, 255, 255, 0.1)',
+                      borderWidth: 1,
+                      displayColors: false,
+                      cornerRadius: 8,
+                      callbacks: {
+                          label: function(context) {
+                              return context.parsed.y.toLocaleString() + ' KM';
+                          }
+                      }
+                  }
+              },
+              scales: {
+                  x: {
+                      grid: { display: false, drawBorder: false },
+                      ticks: { font: { family: 'Sora', size: 11 }, color: '#7A899C', maxTicksLimit: 6 }
+                  },
+                  y: {
+                      grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false },
+                      ticks: { font: { family: 'Sora', size: 11 }, color: '#7A899C', maxTicksLimit: 5 }
+                  }
+              },
+              interaction: {
+                  intersect: false,
+                  mode: 'index',
+              },
+          }
+      };
+
+      new Chart(ctx, config);
+    </script>
+  </body>
+</html>
