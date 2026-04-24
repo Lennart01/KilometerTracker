@@ -7,21 +7,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&family=Syne:wght@500;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       :root {
-        --bg-color: #050507;
-        --surface: rgba(18, 22, 29, 0.65);
-        --surface-border: rgba(255, 255, 255, 0.08);
+        /* Skoda Brand Colors */
+        --skoda-electric-green: #78fa91; /* Vivid green accent */
+        --skoda-emerald: #004631; /* Deep green */
+        --skoda-dark: #0a0c10; /* Very dark slate/blue-ish background */
+        --skoda-surface: rgba(21, 26, 34, 0.7); /* Panel background */
+        
+        --bg-color: var(--skoda-dark);
+        --surface: var(--skoda-surface);
+        --surface-border: rgba(255, 255, 255, 0.06);
         --text-primary: #ffffff;
-        --text-secondary: #8b949e;
-        --accent-cyan: #00e5ff;
-        --accent-purple: #9d4edd;
-        --status-good: #2ee59d;
-        --status-bad: #ff4757;
+        --text-secondary: #94a3b8;
+        --accent-primary: var(--skoda-electric-green);
+        --accent-secondary: #ffffff;
+        
+        --status-good: var(--skoda-electric-green);
+        --status-bad: #ff4d4f;
+        
+        --shadow-elevation-1: 0 4px 24px rgba(0, 0, 0, 0.2);
+        --shadow-elevation-2: 0 16px 40px rgba(0, 0, 0, 0.4);
       }
 
       * {
@@ -30,8 +40,7 @@
         padding: 0;
       }
 
-      html,
-      body {
+      html, body {
         overflow-x: hidden;
         max-width: 100vw;
       }
@@ -39,152 +48,145 @@
       body {
         background-color: var(--bg-color);
         color: var(--text-primary);
-        font-family: "Sora", sans-serif;
+        font-family: "Plus Jakarta Sans", sans-serif;
         min-height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
         padding: 2rem;
         position: relative;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
 
+      /* Subtle ambient glow using Skoda Emerald */
       body::before {
         content: "";
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background:
-          radial-gradient(
-            circle at 50% 10%,
-            rgba(0, 229, 255, 0.08) 0%,
-            transparent 35%
-          ),
-          radial-gradient(
-            circle at 80% 80%,
-            rgba(157, 78, 221, 0.08) 0%,
-            transparent 35%
-          );
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          circle at 50% 0%,
+          rgba(0, 70, 49, 0.3) 0%,
+          transparent 50%
+        );
         z-index: -1;
         pointer-events: none;
       }
 
       .dashboard {
         width: 100%;
-        max-width: 1300px;
+        max-width: 1400px;
         display: grid;
-        grid-template-columns: 1fr 380px;
-        gap: 2rem;
-        animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        grid-template-columns: 1fr 400px;
+        gap: 1.5rem;
+        opacity: 0;
+        animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
 
-      .glass-panel {
+      .panel {
         background: var(--surface);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(32px);
+        -webkit-backdrop-filter: blur(32px);
         border: 1px solid var(--surface-border);
-        border-radius: 24px;
+        border-radius: 20px;
         padding: 2.5rem;
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        box-shadow: var(--shadow-elevation-1);
         position: relative;
         overflow: hidden;
-      }
-
-      .glass-panel::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.1),
-          transparent
-        );
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
 
       .main-content {
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 2.5rem;
       }
 
       header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--surface-border);
+        padding-bottom: 1.5rem;
       }
 
       .brand {
-        font-family: "Syne", sans-serif;
         font-weight: 800;
-        font-size: 1.5rem;
-        letter-spacing: 0.1em;
-        background: linear-gradient(90deg, #fff, var(--text-secondary));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-size: 1.25rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      
+      .brand::before {
+        content: '';
+        display: block;
+        width: 24px;
+        height: 24px;
+        background-color: var(--accent-primary);
+        border-radius: 50%;
+        box-shadow: 0 0 16px rgba(120, 250, 145, 0.4);
       }
 
       .sync-status {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        font-size: 0.8rem;
+        gap: 0.5rem;
+        font-size: 0.75rem;
         color: var(--text-secondary);
         font-weight: 600;
         letter-spacing: 0.05em;
-      }
-
-      .dot {
-        width: 8px;
-        height: 8px;
-        background-color: var(--accent-cyan);
-        border-radius: 50%;
-        box-shadow: 0 0 12px var(--accent-cyan);
-        animation: pulse 2.5s infinite;
+        text-transform: uppercase;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 100px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
       }
 
       .hero-data {
-        margin: 1rem 0 2rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
       }
 
       .label {
-        font-family: "Syne", sans-serif;
+        font-weight: 600;
+        font-size: 0.75rem;
         text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 0.15em;
+        letter-spacing: 0.1em;
         color: var(--text-secondary);
-        margin-bottom: 0.5rem;
       }
 
       .hero-value {
-        font-family: "Sora", sans-serif;
-        font-size: clamp(3rem, 8vw, 5.5rem);
-        font-weight: 600;
+        font-size: clamp(3.5rem, 8vw, 6rem);
+        font-weight: 700;
         line-height: 1;
-        letter-spacing: -0.03em;
-        background: linear-gradient(180deg, #ffffff 0%, #a0abc0 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        display: inline-block;
+        letter-spacing: -0.04em;
+        color: var(--accent-primary);
+        text-shadow: 0 0 40px rgba(120, 250, 145, 0.2);
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
       }
 
       .unit {
-        font-size: clamp(1.2rem, 3vw, 1.8rem);
+        font-size: clamp(1.2rem, 3vw, 2rem);
+        font-weight: 500;
         color: var(--text-secondary);
-        font-weight: 600;
-        margin-left: 0.5rem;
-        -webkit-text-fill-color: var(--text-secondary);
+        letter-spacing: normal;
+        text-shadow: none;
       }
 
       .metrics-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
+        gap: 1rem;
       }
 
       .metric {
@@ -192,105 +194,119 @@
         background: rgba(255, 255, 255, 0.02);
         border-radius: 16px;
         border: 1px solid var(--surface-border);
-        transition: all 0.3s ease;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        gap: 0.5rem;
+        opacity: 0;
+        animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-
-      .metric:hover {
-        transform: translateY(-4px);
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      }
+      
+      /* Staggered animation for metrics */
+      .metric:nth-child(1) { animation-delay: 0.1s; }
+      .metric:nth-child(2) { animation-delay: 0.15s; }
+      .metric:nth-child(3) { animation-delay: 0.2s; }
+      .metric:nth-child(4) { animation-delay: 0.25s; }
+      .metric:nth-child(5) { animation-delay: 0.3s; }
+      .metric:nth-child(6) { animation-delay: 0.35s; }
 
       .metric-value {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 600;
-        margin-top: 0.75rem;
         color: var(--text-primary);
         letter-spacing: -0.02em;
       }
 
       .chart-wrapper {
-        margin-top: 1.5rem;
+        margin-top: 1rem;
         width: 100%;
-        height: 280px;
+        height: 320px;
         position: relative;
+        padding-top: 1rem;
+        border-top: 1px solid var(--surface-border);
+        opacity: 0;
+        animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
       }
 
       .side-panel {
         display: flex;
         flex-direction: column;
-        gap: 2rem;
-        justify-content: space-between;
+        gap: 1.5rem;
+        opacity: 0;
+        animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
       }
 
       .progress-group {
         display: flex;
         flex-direction: column;
         gap: 2rem;
-        margin-top: 2rem;
+        margin-top: 1.5rem;
       }
 
       .track-container {
         width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
       }
 
       .track-header {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0.75rem;
+        align-items: flex-end;
+      }
+      
+      .track-value {
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: var(--text-primary);
+        line-height: 1;
       }
 
       .track-bg {
         width: 100%;
-        height: 6px;
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 6px;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
         overflow: hidden;
         position: relative;
       }
 
       .track-fill {
         height: 100%;
-        border-radius: 4px;
+        border-radius: 8px;
         position: absolute;
         left: 0;
         top: 0;
         transform-origin: left;
-        animation: scaleX 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        animation-delay: 0.5s;
+        animation: scaleX 1.2s cubic-bezier(0.2, 1, 0.3, 1) 0.6s forwards;
         transform: scaleX(0);
       }
 
       .fill-mileage {
-        background: linear-gradient(90deg, var(--accent-cyan), #0088ff);
-        box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+        background: var(--accent-primary);
+        box-shadow: 0 0 12px rgba(120, 250, 145, 0.4);
       }
 
       .fill-time {
-        background: linear-gradient(90deg, var(--accent-purple), #ff00ff);
-        box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        background: #ffffff;
       }
 
       .health-card {
-        margin-top: auto;
-        padding: 2.5rem 2rem;
+        padding: 2.5rem;
         background: rgba(255, 255, 255, 0.02);
-        border-radius: 24px;
-        text-align: center;
+        border-radius: 20px;
         border: 1px solid var(--surface-border);
-        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex-grow: 1;
       }
 
       .health-status {
-        font-family: "Syne", sans-serif;
-        font-size: 1.5rem;
+        font-size: 2rem;
         font-weight: 700;
-        letter-spacing: 0.05em;
-        margin: 1rem 0 0.5rem 0;
+        letter-spacing: -0.02em;
+        margin-top: 0.5rem;
       }
 
       .status-good {
@@ -301,33 +317,28 @@
       }
 
       .health-deviation {
-        font-size: 1.25rem;
-        font-weight: 300;
+        font-size: 1.125rem;
+        font-weight: 500;
         color: var(--text-secondary);
       }
 
       .recovery-action {
-        margin-top: 1.5rem;
+        margin-top: auto;
         padding-top: 1.5rem;
         border-top: 1px solid var(--surface-border);
       }
-
-      @keyframes pulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.4);
-        }
-        70% {
-          box-shadow: 0 0 0 8px rgba(0, 229, 255, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);
-        }
+      
+      .recovery-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-top: 0.5rem;
       }
 
       @keyframes fadeUp {
         from {
           opacity: 0;
-          transform: translateY(30px);
+          transform: translateY(20px);
         }
         to {
           opacity: 1;
@@ -341,15 +352,12 @@
         }
       }
 
-      @media (max-width: 1024px) {
+      @media (max-width: 1100px) {
         .dashboard {
           grid-template-columns: 1fr;
         }
-        .side-panel {
-          gap: 1.5rem;
-        }
         .health-card {
-          margin-top: 0;
+          flex-grow: 0;
         }
       }
 
@@ -357,50 +365,29 @@
         .metrics-grid {
           grid-template-columns: repeat(2, 1fr);
         }
-      }
-
-      @media (max-width: 600px) {
-        .metrics-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1rem;
-        }
-        .metric {
-          padding: 1.25rem;
-        }
-        .metric-value {
-          font-size: 1.5rem;
-        }
-        .label {
-          font-size: 0.75rem;
-        }
         body {
           padding: 1rem;
         }
-        .glass-panel {
+        .panel {
           padding: 1.5rem;
-          border-radius: 20px;
         }
-        .health-card {
-          padding: 1.5rem;
-          border-radius: 20px;
-        }
-        .dashboard {
-          gap: 1rem;
-        }
-        .progress-group {
-          gap: 1.5rem;
+      }
+
+      @media (max-width: 480px) {
+        .metrics-grid {
+          grid-template-columns: 1fr;
         }
       }
     </style>
   </head>
   <body>
     <div class="dashboard">
-      <div class="glass-panel main-content">
+      <div class="panel main-content">
         <header>
-          <div class="brand">SKODATRACK</div>
+          <div class="brand">SkodaTrack</div>
           <div class="sync-status">
-            <div class="dot"></div>
-            SYNCED TODAY
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-primary)"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Synced Today
           </div>
         </header>
 
@@ -444,39 +431,27 @@
       </div>
 
       <div class="side-panel">
-        <div class="glass-panel">
-          <div class="label" style="margin-bottom: 1.5rem; color: #fff">
-            Lease Progress
-          </div>
-
+        <div class="panel">
+          <div class="label" style="color: var(--text-primary); margin-bottom: 0.5rem;">Lease Progress</div>
+          
           <div class="progress-group">
             <div class="track-container">
               <div class="track-header">
                 <span class="label">Mileage Used</span>
-                <span class="label" style="color: var(--text-primary)"
-                  >{{ progress_percent }}%</span
-                >
+                <span class="track-value">{{ progress_percent }}%</span>
               </div>
               <div class="track-bg">
-                <div
-                  class="track-fill fill-mileage"
-                  style="width: {{ progress_percent }}%;"
-                ></div>
+                <div class="track-fill fill-mileage" style="width: {{ progress_percent }}%;"></div>
               </div>
             </div>
 
             <div class="track-container">
               <div class="track-header">
                 <span class="label">Time Elapsed</span>
-                <span class="label" style="color: var(--text-primary)"
-                  >{{ time_percent }}%</span
-                >
+                <span class="track-value">{{ time_percent }}%</span>
               </div>
               <div class="track-bg">
-                <div
-                  class="track-fill fill-time"
-                  style="width: {{ time_percent }}%;"
-                ></div>
+                <div class="track-fill fill-time" style="width: {{ time_percent }}%;"></div>
               </div>
             </div>
           </div>
@@ -484,37 +459,18 @@
 
         <div class="health-card">
           <div class="label">Burn Rate Analysis</div>
-          <div
-            class="health-status {% if health_status == 'UNDER BUDGET' %}status-good{% else %}status-bad{% endif %}"
-          >
+          <div class="health-status {% if health_status == 'UNDER BUDGET' %}status-good{% else %}status-bad{% endif %}">
             {{ health_status }}
           </div>
           <div class="health-deviation">
-            Deviation: {{ "{:,}".format(health_diff) }} KM
+            {{ "{:,}".format(health_diff) }} KM Deviation
           </div>
 
           {% if health_status == 'OVER BUDGET' and home_office_days > 0 %}
           <div class="recovery-action">
-            <div class="label" style="color: var(--accent-cyan)">
-              Recovery Plan
-            </div>
-            <div
-              style="
-                font-size: 1.25rem;
-                font-weight: 600;
-                margin-top: 0.5rem;
-                color: var(--text-primary);
-              "
-            >
-              {{ home_office_days }} Home Office Days
-            </div>
-            <div
-              style="
-                font-size: 0.85rem;
-                color: var(--text-secondary);
-                margin-top: 0.25rem;
-              "
-            >
+            <div class="label" style="color: var(--text-primary)">Recovery Plan</div>
+            <div class="recovery-value">{{ home_office_days }} Home Office Days</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
               Required to get back on track
             </div>
           </div>
@@ -524,28 +480,32 @@
     </div>
 
     <script>
+      // Configure Chart.js defaults for better typography
+      Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
+      Chart.defaults.color = '#94a3b8';
+      
       const ctx = document.getElementById('mileageChart').getContext('2d');
 
-      let gradient = ctx.createLinearGradient(0, 0, 0, 250);
-      gradient.addColorStop(0, 'rgba(0, 229, 255, 0.4)');
-      gradient.addColorStop(1, 'rgba(0, 229, 255, 0.0)');
+      let gradient = ctx.createLinearGradient(0, 0, 0, 320);
+      gradient.addColorStop(0, 'rgba(120, 250, 145, 0.25)'); // Skoda Electric Green with opacity
+      gradient.addColorStop(1, 'rgba(120, 250, 145, 0.0)');
 
       const data = {
           labels: {{ history_dates_json | safe }},
-      datasets: [{
-          label: 'Mileage Log',
-          data: {{ history_mileages_json | safe }},
-      borderColor: '#00E5FF',
-          backgroundColor: gradient,
-          borderWidth: 3,
-          pointBackgroundColor: '#07090C',
-          pointBorderColor: '#00E5FF',
-          pointBorderWidth: 2,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          fill: true,
-          tension: 0.4
-      }]
+          datasets: [{
+              label: 'Mileage Log',
+              data: {{ history_mileages_json | safe }},
+              borderColor: '#78fa91', // Skoda Electric Green
+              backgroundColor: gradient,
+              borderWidth: 3,
+              pointBackgroundColor: '#0a0c10',
+              pointBorderColor: '#78fa91',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              fill: true,
+              tension: 0.3 // Smoother curve
+          }]
       };
 
       const config = {
@@ -557,14 +517,16 @@
               plugins: {
                   legend: { display: false },
                   tooltip: {
-                      backgroundColor: 'rgba(18, 22, 29, 0.95)',
-                      titleFont: { family: 'Sora', size: 12 },
-                      bodyFont: { family: 'Sora', size: 14, weight: '600' },
-                      padding: 12,
+                      backgroundColor: 'rgba(21, 26, 34, 0.95)',
+                      titleFont: { size: 13, weight: '600' },
+                      bodyFont: { size: 15, weight: '700' },
+                      padding: 14,
                       borderColor: 'rgba(255, 255, 255, 0.1)',
                       borderWidth: 1,
                       displayColors: false,
-                      cornerRadius: 8,
+                      cornerRadius: 12,
+                      titleColor: '#94a3b8',
+                      bodyColor: '#ffffff',
                       callbacks: {
                           label: function(context) {
                               return context.parsed.y.toLocaleString() + ' KM';
@@ -575,17 +537,31 @@
               scales: {
                   x: {
                       grid: { display: false, drawBorder: false },
-                      ticks: { font: { family: 'Sora', size: 11 }, color: '#7A899C', maxTicksLimit: 6 }
+                      ticks: { 
+                        font: { size: 11, weight: '500' }, 
+                        maxTicksLimit: 6,
+                        padding: 10
+                      },
+                      border: { display: false }
                   },
                   y: {
-                      grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false },
-                      ticks: { font: { family: 'Sora', size: 11 }, color: '#7A899C', maxTicksLimit: 5 }
+                      grid: { color: 'rgba(255, 255, 255, 0.04)', drawBorder: false },
+                      border: { display: false, dash: [4, 4] },
+                      ticks: { 
+                        font: { size: 11, weight: '500' }, 
+                        maxTicksLimit: 5,
+                        padding: 10
+                      }
                   }
               },
               interaction: {
                   intersect: false,
                   mode: 'index',
               },
+              animation: {
+                  duration: 1500,
+                  easing: 'easeOutQuart'
+              }
           }
       };
 
